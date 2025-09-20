@@ -1,5 +1,5 @@
 "use client";
-import React, { useState, useCallback, useMemo } from 'react';
+import React, { useState } from 'react';
 import { Camera, Upload, GraduationCap, User, Award, FileText, ChevronDown, ChevronUp, Eye, Phone, MapPin, School } from 'lucide-react';
 
 const TCAS69Portfolio = () => {
@@ -26,7 +26,7 @@ const TCAS69Portfolio = () => {
   });
   const [errors, setErrors] = useState({});
 
-  const validateForm = useCallback(() => {
+  const validateForm = () => {
     const newErrors = {};
     
     if (!formData.firstName.trim()) newErrors.firstName = 'กรุณากรอกชื่อ';
@@ -46,24 +46,24 @@ const TCAS69Portfolio = () => {
     
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
-  }, [formData]);
+  };
 
-  const handleInputChange = useCallback((e) => {
+  const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
     
-    setErrors(prev => {
-      if (prev[name]) {
+    if (errors[name]) {
+      setErrors(prev => {
         const newErrors = { ...prev };
         delete newErrors[name];
         return newErrors;
-      }
-      return prev;
-    });
-  }, []);
+      });
+    }
+  };
 
-  const handleImageUpload = useCallback((e, type) => {
+  const handleImageUpload = (e, type) => {
     const files = Array.from(e.target.files);
+    
     files.forEach(file => {
       const reader = new FileReader();
       reader.onload = (event) => {
@@ -72,15 +72,19 @@ const TCAS69Portfolio = () => {
         } else {
           setFormData(prev => ({
             ...prev,
-            [type]: [...prev[type], { id: Date.now() + Math.random(), url: event.target.result, name: file.name }]
+            [type]: [...prev[type], { 
+              id: Date.now() + Math.random(), 
+              url: event.target.result, 
+              name: file.name 
+            }]
           }));
         }
       };
       reader.readAsDataURL(file);
     });
-  }, []);
+  };
 
-  const removeImage = useCallback((type, imageId) => {
+  const removeImage = (type, imageId) => {
     if (type === 'profile') {
       setFormData(prev => ({ ...prev, profileImage: null }));
     } else {
@@ -89,9 +93,9 @@ const TCAS69Portfolio = () => {
         [type]: prev[type].filter(img => img.id !== imageId)
       }));
     }
-  }, []);
+  };
 
-  const handleSubmit = useCallback((e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
     if (validateForm()) {
       const newStudent = {
@@ -121,9 +125,9 @@ const TCAS69Portfolio = () => {
       
       alert('บันทึกข้อมูลเรียบร้อยแล้ว!');
     }
-  }, [formData, validateForm]);
+  };
 
-  const handleSort = useCallback((key) => {
+  const handleSort = (key) => {
     setSortConfig(prev => {
       let direction = 'asc';
       if (prev.key === key && prev.direction === 'asc') {
@@ -131,9 +135,9 @@ const TCAS69Portfolio = () => {
       }
       return { key, direction };
     });
-  }, []);
+  };
 
-  const sortedStudents = useMemo(() => {
+  const getSortedStudents = () => {
     if (!sortConfig.key) return students;
     
     return [...students].sort((a, b) => {
@@ -150,16 +154,16 @@ const TCAS69Portfolio = () => {
       if (aValue > bValue) return sortConfig.direction === 'asc' ? 1 : -1;
       return 0;
     });
-  }, [students, sortConfig]);
+  };
 
-  const renderSortIcon = useCallback((key) => {
+  const renderSortIcon = (key) => {
     if (sortConfig.key !== key) return <ChevronDown className="w-4 h-4 opacity-50" />;
     return sortConfig.direction === 'asc' 
       ? <ChevronUp className="w-4 h-4 text-blue-600" />
       : <ChevronDown className="w-4 h-4 text-blue-600" />;
-  }, [sortConfig]);
+  };
 
-  const StudentForm = React.memo(function StudentForm() {
+  const StudentForm = () => {
     return (
       <div className="max-w-4xl mx-auto p-6 bg-white rounded-xl shadow-lg">
         <div className="text-center mb-8">
@@ -188,9 +192,8 @@ const TCAS69Portfolio = () => {
                 type="file"
                 accept="image/*"
                 onChange={(e) => handleImageUpload(e, 'profile')}
-                className="mt-2 text-sm text-gray-500"
+                className="hidden"
                 id="profile-upload"
-                style={{ display: 'none' }}
               />
               <label htmlFor="profile-upload" className="mt-2 bg-blue-500 text-white px-4 py-2 rounded-lg cursor-pointer hover:bg-blue-600 transition-colors">
                 เลือกรูปภาพ
@@ -224,7 +227,9 @@ const TCAS69Portfolio = () => {
               />
               {errors.lastName && <p className="text-red-500 text-sm mt-1">{errors.lastName}</p>}
             </div>
+          </div>
 
+          <div className="grid md:grid-cols-2 gap-6">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">วันเกิด *</label>
               <input
@@ -414,9 +419,11 @@ const TCAS69Portfolio = () => {
         </form>
       </div>
     );
-  });
+  };
 
-  const TeacherDashboard = React.memo(function TeacherDashboard() {
+  const TeacherDashboard = () => {
+    const sortedStudents = getSortedStudents();
+    
     return (
       <div className="max-w-7xl mx-auto p-6">
         <div className="bg-white rounded-xl shadow-lg p-6">
@@ -534,9 +541,9 @@ const TCAS69Portfolio = () => {
         </div>
       </div>
     );
-  });
+  };
 
-  const StudentDetail = React.memo(() => {
+  const StudentDetail = () => {
     if (!selectedStudent) return null;
 
     return (
@@ -676,7 +683,7 @@ const TCAS69Portfolio = () => {
         </div>
       </div>
     );
-  });
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
