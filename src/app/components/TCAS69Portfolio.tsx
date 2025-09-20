@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+"use client";
+import React, { useState, useCallback, useMemo } from 'react';
 import { Camera, Upload, GraduationCap, User, Award, FileText, ChevronDown, ChevronUp, Eye, Phone, MapPin, School } from 'lucide-react';
 
 const TCAS69Portfolio = () => {
@@ -25,8 +26,8 @@ const TCAS69Portfolio = () => {
   });
   const [errors, setErrors] = useState({});
 
-  // Validation rules
-  const validateForm = () => {
+  // Validation rules - ใช้ useCallback เพื่อป้องกัน re-render
+  const validateForm = useCallback(() => {
     const newErrors = {};
     
     if (!formData.firstName.trim()) newErrors.firstName = 'กรุณากรอกชื่อ';
@@ -46,19 +47,26 @@ const TCAS69Portfolio = () => {
     
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
-  };
+  }, [formData]);
 
-  // Handle input changes
-  const handleInputChange = (e) => {
+  // Handle input changes - ใช้ useCallback
+  const handleInputChange = useCallback((e) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
-    if (errors[name]) {
-      setErrors(prev => ({ ...prev, [name]: '' }));
-    }
-  };
+    
+    // Clear error for this field when user starts typing
+    setErrors(prev => {
+      if (prev[name]) {
+        const newErrors = { ...prev };
+        delete newErrors[name];
+        return newErrors;
+      }
+      return prev;
+    });
+  }, []);
 
-  // Handle image upload
-  const handleImageUpload = (e, type) => {
+  // Handle image upload - ใช้ useCallback
+  const handleImageUpload = useCallback((e, type) => {
     const files = Array.from(e.target.files);
     files.forEach(file => {
       const reader = new FileReader();
@@ -74,10 +82,10 @@ const TCAS69Portfolio = () => {
       };
       reader.readAsDataURL(file);
     });
-  };
+  }, []);
 
-  // Remove image
-  const removeImage = (type, imageId) => {
+  // Remove image - ใช้ useCallback
+  const removeImage = useCallback((type, imageId) => {
     if (type === 'profile') {
       setFormData(prev => ({ ...prev, profileImage: null }));
     } else {
@@ -86,10 +94,10 @@ const TCAS69Portfolio = () => {
         [type]: prev[type].filter(img => img.id !== imageId)
       }));
     }
-  };
+  }, []);
 
-  // Submit form
-  const handleSubmit = (e) => {
+  // Submit form - ใช้ useCallback
+  const handleSubmit = useCallback((e) => {
     e.preventDefault();
     if (validateForm()) {
       const newStudent = {
@@ -120,18 +128,21 @@ const TCAS69Portfolio = () => {
       
       alert('บันทึกข้อมูลเรียบร้อยแล้ว!');
     }
-  };
+  }, [formData, validateForm]);
 
-  // Sort students
-  const handleSort = (key) => {
-    let direction = 'asc';
-    if (sortConfig.key === key && sortConfig.direction === 'asc') {
-      direction = 'desc';
-    }
-    setSortConfig({ key, direction });
-  };
+  // Sort students - ใช้ useCallback
+  const handleSort = useCallback((key) => {
+    setSortConfig(prev => {
+      let direction = 'asc';
+      if (prev.key === key && prev.direction === 'asc') {
+        direction = 'desc';
+      }
+      return { key, direction };
+    });
+  }, []);
 
-  const sortedStudents = React.useMemo(() => {
+  // Sorted students - ใช้ useMemo
+  const sortedStudents = useMemo(() => {
     if (!sortConfig.key) return students;
     
     return [...students].sort((a, b) => {
@@ -150,16 +161,16 @@ const TCAS69Portfolio = () => {
     });
   }, [students, sortConfig]);
 
-  // Render sort icon
-  const renderSortIcon = (key) => {
+  // Render sort icon - ใช้ useCallback
+  const renderSortIcon = useCallback((key) => {
     if (sortConfig.key !== key) return <ChevronDown className="w-4 h-4 opacity-50" />;
     return sortConfig.direction === 'asc' 
       ? <ChevronUp className="w-4 h-4 text-blue-600" />
       : <ChevronDown className="w-4 h-4 text-blue-600" />;
-  };
+  }, [sortConfig]);
 
-  // Student form component
-  const StudentForm = () => (
+  // Student form component - ใช้ React.memo เพื่อป้องกัน re-render ที่ไม่จำเป็น
+  const StudentForm = React.memo(() => (
     <div className="max-w-4xl mx-auto p-6 bg-white rounded-xl shadow-lg">
       <div className="text-center mb-8">
         <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full mb-4">
@@ -206,7 +217,7 @@ const TCAS69Portfolio = () => {
               name="firstName"
               value={formData.firstName}
               onChange={handleInputChange}
-              className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${errors.firstName ? 'border-red-500' : 'border-gray-300'}`}
+              className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black ${errors.firstName ? 'border-red-500' : 'border-gray-300'}`}
               placeholder="กรอกชื่อ"
             />
             {errors.firstName && <p className="text-red-500 text-sm mt-1">{errors.firstName}</p>}
@@ -219,7 +230,7 @@ const TCAS69Portfolio = () => {
               name="lastName"
               value={formData.lastName}
               onChange={handleInputChange}
-              className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${errors.lastName ? 'border-red-500' : 'border-gray-300'}`}
+              className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black ${errors.lastName ? 'border-red-500' : 'border-gray-300'}`}
               placeholder="กรอกนามสกุล"
             />
             {errors.lastName && <p className="text-red-500 text-sm mt-1">{errors.lastName}</p>}
@@ -232,7 +243,7 @@ const TCAS69Portfolio = () => {
               name="birthDate"
               value={formData.birthDate}
               onChange={handleInputChange}
-              className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${errors.birthDate ? 'border-red-500' : 'border-gray-300'}`}
+              className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black ${errors.birthDate ? 'border-red-500' : 'border-gray-300'}`}
             />
             {errors.birthDate && <p className="text-red-500 text-sm mt-1">{errors.birthDate}</p>}
           </div>
@@ -244,7 +255,7 @@ const TCAS69Portfolio = () => {
               name="email"
               value={formData.email}
               onChange={handleInputChange}
-              className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${errors.email ? 'border-red-500' : 'border-gray-300'}`}
+              className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black ${errors.email ? 'border-red-500' : 'border-gray-300'}`}
               placeholder="example@email.com"
             />
             {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email}</p>}
@@ -258,7 +269,7 @@ const TCAS69Portfolio = () => {
             value={formData.address}
             onChange={handleInputChange}
             rows={3}
-            className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${errors.address ? 'border-red-500' : 'border-gray-300'}`}
+            className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black ${errors.address ? 'border-red-500' : 'border-gray-300'}`}
             placeholder="กรอกที่อยู่ที่สามารถติดต่อได้"
           />
           {errors.address && <p className="text-red-500 text-sm mt-1">{errors.address}</p>}
@@ -272,7 +283,7 @@ const TCAS69Portfolio = () => {
               name="phone"
               value={formData.phone}
               onChange={handleInputChange}
-              className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${errors.phone ? 'border-red-500' : 'border-gray-300'}`}
+              className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black ${errors.phone ? 'border-red-500' : 'border-gray-300'}`}
               placeholder="0812345678"
             />
             {errors.phone && <p className="text-red-500 text-sm mt-1">{errors.phone}</p>}
@@ -285,7 +296,7 @@ const TCAS69Portfolio = () => {
               name="parentPhone"
               value={formData.parentPhone}
               onChange={handleInputChange}
-              className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${errors.parentPhone ? 'border-red-500' : 'border-gray-300'}`}
+              className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black ${errors.parentPhone ? 'border-red-500' : 'border-gray-300'}`}
               placeholder="0812345678"
             />
             {errors.parentPhone && <p className="text-red-500 text-sm mt-1">{errors.parentPhone}</p>}
@@ -300,7 +311,7 @@ const TCAS69Portfolio = () => {
               name="school"
               value={formData.school}
               onChange={handleInputChange}
-              className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${errors.school ? 'border-red-500' : 'border-gray-300'}`}
+              className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black ${errors.school ? 'border-red-500' : 'border-gray-300'}`}
               placeholder="ชื่อโรงเรียนปัจจุบัน"
             />
             {errors.school && <p className="text-red-500 text-sm mt-1">{errors.school}</p>}
@@ -316,7 +327,7 @@ const TCAS69Portfolio = () => {
               min="0"
               max="4"
               step="0.01"
-              className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${errors.gpa ? 'border-red-500' : 'border-gray-300'}`}
+              className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black ${errors.gpa ? 'border-red-500' : 'border-gray-300'}`}
               placeholder="3.50"
             />
             {errors.gpa && <p className="text-red-500 text-sm mt-1">{errors.gpa}</p>}
@@ -330,7 +341,7 @@ const TCAS69Portfolio = () => {
             value={formData.specialSkills}
             onChange={handleInputChange}
             rows={4}
-            className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${errors.specialSkills ? 'border-red-500' : 'border-gray-300'}`}
+            className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black ${errors.specialSkills ? 'border-red-500' : 'border-gray-300'}`}
             placeholder="เช่น การเขียนโปรแกรม, ดนตรี, กีฬา, ศิลปะ, ฯลฯ"
           />
           {errors.specialSkills && <p className="text-red-500 text-sm mt-1">{errors.specialSkills}</p>}
@@ -343,7 +354,7 @@ const TCAS69Portfolio = () => {
             value={formData.applicationReason}
             onChange={handleInputChange}
             rows={4}
-            className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent ${errors.applicationReason ? 'border-red-500' : 'border-gray-300'}`}
+            className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent text-black ${errors.applicationReason ? 'border-red-500' : 'border-gray-300'}`}
             placeholder="อธิบายเหตุผลที่ต้องการเข้าเรียนในสาขานี้"
           />
           {errors.applicationReason && <p className="text-red-500 text-sm mt-1">{errors.applicationReason}</p>}
@@ -414,10 +425,10 @@ const TCAS69Portfolio = () => {
         </button>
       </form>
     </div>
-  );
+  ));
 
-  // Teacher Dashboard
-  const TeacherDashboard = () => (
+  // Teacher Dashboard - ใช้ React.memo
+  const TeacherDashboard = React.memo(() => (
     <div className="max-w-7xl mx-auto p-6">
       <div className="bg-white rounded-xl shadow-lg p-6">
         <div className="flex items-center justify-between mb-6">
@@ -529,147 +540,151 @@ const TCAS69Portfolio = () => {
         )}
       </div>
     </div>
-  );
+  ));
 
   // Student Detail Modal
-  const StudentDetail = () => (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <div className="bg-white rounded-xl shadow-2xl max-w-4xl w-full max-h-screen overflow-y-auto">
-        <div className="sticky top-0 bg-white border-b border-gray-200 p-6">
-          <div className="flex items-center justify-between">
-            <h3 className="text-2xl font-bold text-gray-800">รายละเอียดนักศึกษา</h3>
-            <button
-              onClick={() => setSelectedStudent(null)}
-              className="text-gray-400 hover:text-gray-600 text-2xl font-bold"
-            >
-              ×
-            </button>
-          </div>
-        </div>
-        
-        <div className="p-6">
-          <div className="flex flex-col md:flex-row gap-6 mb-8">
-            <div className="flex-shrink-0">
-              {selectedStudent.profileImage ? (
-                <img src={selectedStudent.profileImage} alt="Profile" className="w-32 h-32 rounded-full object-cover border-4 border-blue-200" />
-              ) : (
-                <div className="w-32 h-32 rounded-full bg-gray-200 flex items-center justify-center">
-                  <User className="w-16 h-16 text-gray-400" />
-                </div>
-              )}
+  const StudentDetail = React.memo(() => {
+    if (!selectedStudent) return null;
+
+    return (
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+        <div className="bg-white rounded-xl shadow-2xl max-w-4xl w-full max-h-screen overflow-y-auto">
+          <div className="sticky top-0 bg-white border-b border-gray-200 p-6">
+            <div className="flex items-center justify-between">
+              <h3 className="text-2xl font-bold text-gray-800">รายละเอียดนักศึกษา</h3>
+              <button
+                onClick={() => setSelectedStudent(null)}
+                className="text-gray-400 hover:text-gray-600 text-2xl font-bold"
+              >
+                ×
+              </button>
             </div>
-            
-            <div className="flex-grow">
-              <h4 className="text-2xl font-bold text-gray-800 mb-2">{selectedStudent.firstName} {selectedStudent.lastName}</h4>
-              <div className="grid md:grid-cols-2 gap-4 text-sm">
-                <div className="flex items-center space-x-2">
-                  <Phone className="w-4 h-4 text-blue-500" />
-                  <span className="text-gray-600">โทรศัพท์:</span>
-                  <span className="font-semibold">{selectedStudent.phone}</span>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <School className="w-4 h-4 text-green-500" />
-                  <span className="text-gray-600">โรงเรียน:</span>
-                  <span className="font-semibold">{selectedStudent.school}</span>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <Award className="w-4 h-4 text-yellow-500" />
-                  <span className="text-gray-600">GPA:</span>
-                  <span className="font-semibold text-lg">{selectedStudent.gpa}</span>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <User className="w-4 h-4 text-purple-500" />
-                  <span className="text-gray-600">วันเกิด:</span>
-                  <span className="font-semibold">{new Date(selectedStudent.birthDate).toLocaleDateString('th-TH')}</span>
+          </div>
+          
+          <div className="p-6">
+            <div className="flex flex-col md:flex-row gap-6 mb-8">
+              <div className="flex-shrink-0">
+                {selectedStudent.profileImage ? (
+                  <img src={selectedStudent.profileImage} alt="Profile" className="w-32 h-32 rounded-full object-cover border-4 border-blue-200" />
+                ) : (
+                  <div className="w-32 h-32 rounded-full bg-gray-200 flex items-center justify-center">
+                    <User className="w-16 h-16 text-gray-400" />
+                  </div>
+                )}
+              </div>
+              
+              <div className="flex-grow">
+                <h4 className="text-2xl font-bold text-gray-800 mb-2">{selectedStudent.firstName} {selectedStudent.lastName}</h4>
+                <div className="grid md:grid-cols-2 gap-4 text-sm">
+                  <div className="flex items-center space-x-2">
+                    <Phone className="w-4 h-4 text-blue-500" />
+                    <span className="text-gray-600">โทรศัพท์:</span>
+                    <span className="font-semibold">{selectedStudent.phone}</span>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <School className="w-4 h-4 text-green-500" />
+                    <span className="text-gray-600">โรงเรียน:</span>
+                    <span className="font-semibold">{selectedStudent.school}</span>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <Award className="w-4 h-4 text-yellow-500" />
+                    <span className="text-gray-600">GPA:</span>
+                    <span className="font-semibold text-lg">{selectedStudent.gpa}</span>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    <User className="w-4 h-4 text-purple-500" />
+                    <span className="text-gray-600">วันเกิด:</span>
+                    <span className="font-semibold">{new Date(selectedStudent.birthDate).toLocaleDateString('th-TH')}</span>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
 
-          <div className="grid md:grid-cols-2 gap-6 mb-6">
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">อีเมล</label>
-              <p className="text-gray-800 bg-gray-50 p-3 rounded-lg">{selectedStudent.email}</p>
+            <div className="grid md:grid-cols-2 gap-6 mb-6">
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">อีเมล</label>
+                <p className="text-gray-800 bg-gray-50 p-3 rounded-lg">{selectedStudent.email}</p>
+              </div>
+              <div>
+                <label className="block text-sm font-semibold text-gray-700 mb-2">โทรศัพท์ผู้ปกครอง</label>
+                <p className="text-gray-800 bg-gray-50 p-3 rounded-lg">{selectedStudent.parentPhone}</p>
+              </div>
             </div>
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-2">โทรศัพท์ผู้ปกครอง</label>
-              <p className="text-gray-800 bg-gray-50 p-3 rounded-lg">{selectedStudent.parentPhone}</p>
+
+            <div className="mb-6">
+              <label className="block text-sm font-semibold text-gray-700 mb-2 flex items-center space-x-2">
+                <MapPin className="w-4 h-4 text-red-500" />
+                <span>ที่อยู่</span>
+              </label>
+              <p className="text-gray-800 bg-gray-50 p-4 rounded-lg leading-relaxed">{selectedStudent.address}</p>
             </div>
-          </div>
 
-          <div className="mb-6">
-            <label className="block text-sm font-semibold text-gray-700 mb-2 flex items-center space-x-2">
-              <MapPin className="w-4 h-4 text-red-500" />
-              <span>ที่อยู่</span>
-            </label>
-            <p className="text-gray-800 bg-gray-50 p-4 rounded-lg leading-relaxed">{selectedStudent.address}</p>
-          </div>
+            <div className="mb-6">
+              <label className="block text-sm font-semibold text-gray-700 mb-2">ความสามารถพิเศษ</label>
+              <p className="text-gray-800 bg-blue-50 p-4 rounded-lg leading-relaxed">{selectedStudent.specialSkills}</p>
+            </div>
 
-          <div className="mb-6">
-            <label className="block text-sm font-semibold text-gray-700 mb-2">ความสามารถพิเศษ</label>
-            <p className="text-gray-800 bg-blue-50 p-4 rounded-lg leading-relaxed">{selectedStudent.specialSkills}</p>
-          </div>
+            <div className="mb-6">
+              <label className="block text-sm font-semibold text-gray-700 mb-2">เหตุผลในการสมัครเข้าเรียน</label>
+              <p className="text-gray-800 bg-green-50 p-4 rounded-lg leading-relaxed">{selectedStudent.applicationReason}</p>
+            </div>
 
-          <div className="mb-6">
-            <label className="block text-sm font-semibold text-gray-700 mb-2">เหตุผลในการสมัครเข้าเรียน</label>
-            <p className="text-gray-800 bg-green-50 p-4 rounded-lg leading-relaxed">{selectedStudent.applicationReason}</p>
-          </div>
-
-          {/* Image Galleries */}
-          {['activityImages', 'awardImages', 'portfolioImages'].map((type) => {
-            const labels = {
-              activityImages: { title: 'รูปภาพกิจกรรม', icon: '🎯', color: 'blue' },
-              awardImages: { title: 'รูปภาพรางวัล', icon: '🏆', color: 'yellow' },
-              portfolioImages: { title: 'รูปภาพผลงาน', icon: '💼', color: 'purple' }
-            };
-            
-            if (selectedStudent[type].length === 0) return null;
-            
-            return (
-              <div key={type} className="mb-6">
-                <label className="block text-sm font-semibold text-gray-700 mb-4 flex items-center space-x-2">
-                  <span className="text-lg">{labels[type].icon}</span>
-                  <span>{labels[type].title}</span>
-                  <span className={`bg-${labels[type].color}-100 text-${labels[type].color}-600 px-2 py-1 rounded-full text-xs`}>
-                    {selectedStudent[type].length} รูป
-                  </span>
-                </label>
-                <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
-                  {selectedStudent[type].map((image, index) => (
-                    <div key={image.id} className="relative group">
-                      <img
-                        src={image.url}
-                        alt={`${labels[type].title} ${index + 1}`}
-                        className="w-full h-24 object-cover rounded-lg border cursor-pointer hover:shadow-lg transition-shadow"
-                        onClick={() => {
-                          const modal = document.createElement('div');
-                          modal.className = 'fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4';
-                          modal.innerHTML = `
-                            <div class="relative max-w-4xl max-h-full">
-                              <img src="${image.url}" alt="${labels[type].title}" class="max-w-full max-h-full object-contain rounded-lg">
-                              <button class="absolute top-4 right-4 text-white bg-black bg-opacity-50 rounded-full w-8 h-8 flex items-center justify-center hover:bg-opacity-75" onclick="this.parentElement.parentElement.remove()">×</button>
-                            </div>
-                          `;
-                          document.body.appendChild(modal);
-                        }}
-                      />
-                      <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 rounded-lg transition-all flex items-center justify-center">
-                        <Eye className="w-5 h-5 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
+            {/* Image Galleries */}
+            {['activityImages', 'awardImages', 'portfolioImages'].map((type) => {
+              const labels = {
+                activityImages: { title: 'รูปภาพกิจกรรม', icon: '🎯', color: 'blue' },
+                awardImages: { title: 'รูปภาพรางวัล', icon: '🏆', color: 'yellow' },
+                portfolioImages: { title: 'รูปภาพผลงาน', icon: '💼', color: 'purple' }
+              };
+              
+              if (selectedStudent[type].length === 0) return null;
+              
+              return (
+                <div key={type} className="mb-6">
+                  <label className="block text-sm font-semibold text-gray-700 mb-4 flex items-center space-x-2">
+                    <span className="text-lg">{labels[type].icon}</span>
+                    <span>{labels[type].title}</span>
+                    <span className={`bg-${labels[type].color}-100 text-${labels[type].color}-600 px-2 py-1 rounded-full text-xs`}>
+                      {selectedStudent[type].length} รูป
+                    </span>
+                  </label>
+                  <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+                    {selectedStudent[type].map((image, index) => (
+                      <div key={image.id} className="relative group">
+                        <img
+                          src={image.url}
+                          alt={`${labels[type].title} ${index + 1}`}
+                          className="w-full h-24 object-cover rounded-lg border cursor-pointer hover:shadow-lg transition-shadow"
+                          onClick={() => {
+                            const modal = document.createElement('div');
+                            modal.className = 'fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50 p-4';
+                            modal.innerHTML = `
+                              <div class="relative max-w-4xl max-h-full">
+                                <img src="${image.url}" alt="${labels[type].title}" class="max-w-full max-h-full object-contain rounded-lg">
+                                <button class="absolute top-4 right-4 text-white bg-black bg-opacity-50 rounded-full w-8 h-8 flex items-center justify-center hover:bg-opacity-75" onclick="this.parentElement.parentElement.remove()">×</button>
+                              </div>
+                            `;
+                            document.body.appendChild(modal);
+                          }}
+                        />
+                        <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-20 rounded-lg transition-all flex items-center justify-center">
+                          <Eye className="w-5 h-5 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    ))}
+                  </div>
                 </div>
-              </div>
-            );
-          })}
+              );
+            })}
 
-          <div className="text-center pt-4 border-t border-gray-200">
-            <p className="text-gray-500 text-sm">ส่งใบสมัครเมื่อ: {selectedStudent.submittedAt}</p>
+            <div className="text-center pt-4 border-t border-gray-200">
+              <p className="text-gray-500 text-sm">ส่งใบสมัครเมื่อ: {selectedStudent.submittedAt}</p>
+            </div>
           </div>
         </div>
       </div>
-    </div>
-  );
+    );
+  });
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
