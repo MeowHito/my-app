@@ -497,14 +497,19 @@ const TCAS69Portfolio = () => {
                 {sortedStudents.map((student, index) => (
                   <tr key={student.id} className={`hover:bg-gray-50 ${index % 2 === 0 ? 'bg-white' : 'bg-gray-25'}`}>
                     <td className="px-6 py-4 border-b border-gray-100">
-                      {student.profileImage ? (
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img src={student.profileImage} alt="Profile" className="w-12 h-12 rounded-full object-cover" />
-                      ) : (
-                        <div className="w-12 h-12 rounded-full bg-gray-200 flex items-center justify-center">
-                          <User className="w-6 h-6 text-gray-400" />
-                        </div>
-                      )}
+                    {student.profileImage ? (
+  // eslint-disable-next-line @next/next/no-img-element
+  <img
+    src={student.profileImage}
+    alt="Profile"
+    className="w-12 h-12 rounded-full object-cover"
+  />
+) : (
+  <div className="w-12 h-12 rounded-full bg-gray-200 flex items-center justify-center">
+    <User className="w-6 h-6 text-gray-400" />
+  </div>
+)}
+
                     </td>
                     <td className="px-6 py-4 border-b border-gray-100">
                       <div className="font-semibold text-gray-800">{student.firstName} {student.lastName}</div>
