@@ -170,7 +170,8 @@ const TCAS69Portfolio = () => {
   }, [sortConfig]);
 
   // Student form component - ใช้ React.memo เพื่อป้องกัน re-render ที่ไม่จำเป็น
-  const StudentForm = React.memo(() => (
+  const StudentForm = React.memo(function StudentForm() {
+    return (
     <div className="max-w-4xl mx-auto p-6 bg-white rounded-xl shadow-lg">
       <div className="text-center mb-8">
         <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full mb-4">
@@ -395,6 +396,7 @@ const TCAS69Portfolio = () => {
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4">
                     {formData[type].map((image) => (
                       <div key={image.id} className="relative">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img
                           src={image.url}
                           alt={image.name}
@@ -425,10 +427,12 @@ const TCAS69Portfolio = () => {
         </button>
       </form>
     </div>
-  ));
+  );
+  });
 
   // Teacher Dashboard - ใช้ React.memo
-  const TeacherDashboard = React.memo(() => (
+  const TeacherDashboard = React.memo(function TeacherDashboard() {
+    return (
     <div className="max-w-7xl mx-auto p-6">
       <div className="bg-white rounded-xl shadow-lg p-6">
         <div className="flex items-center justify-between mb-6">
@@ -494,6 +498,7 @@ const TCAS69Portfolio = () => {
                   <tr key={student.id} className={`hover:bg-gray-50 ${index % 2 === 0 ? 'bg-white' : 'bg-gray-25'}`}>
                     <td className="px-6 py-4 border-b border-gray-100">
                       {student.profileImage ? (
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img src={student.profileImage} alt="Profile" className="w-12 h-12 rounded-full object-cover" />
                       ) : (
                         <div className="w-12 h-12 rounded-full bg-gray-200 flex items-center justify-center">
@@ -565,6 +570,7 @@ const TCAS69Portfolio = () => {
             <div className="flex flex-col md:flex-row gap-6 mb-8">
               <div className="flex-shrink-0">
                 {selectedStudent.profileImage ? (
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img src={selectedStudent.profileImage} alt="Profile" className="w-32 h-32 rounded-full object-cover border-4 border-blue-200" />
                 ) : (
                   <div className="w-32 h-32 rounded-full bg-gray-200 flex items-center justify-center">
@@ -651,6 +657,7 @@ const TCAS69Portfolio = () => {
                   <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
                     {selectedStudent[type].map((image, index) => (
                       <div key={image.id} className="relative group">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img
                           src={image.url}
                           alt={`${labels[type].title} ${index + 1}`}
